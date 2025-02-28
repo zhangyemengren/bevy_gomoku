@@ -11,11 +11,10 @@ pub const LINE_WIDTH: f32 = 2.0; // 线宽
 pub const LINE_COLOR: Color = Color::BLACK;
 pub const BACKGROUND_COLOR: Color = Color::srgb(0.93, 0.87, 0.73); // 米黄色
 pub const POINT_SIZE: f32 = 8.0; // 棋子放置点大小
-pub const DIAGONAL_LENGTH: f32 = 40.0; // 斜线长度
 pub const TEXT_SIZE: f32 = 40.0;
 
 // 棋盘位置配置
-pub const PALACE_POSITIONS: [([(i32, i32); 2]); 4] = [
+pub const PALACE_POSITIONS: [[(i32, i32); 2]; 4] = [
     // 上方九宫
     [(3, 0), (5, 2)],
     [(5, 0), (3, 2)],

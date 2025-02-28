@@ -1,0 +1,8 @@
+---
+description: 规则
+globs: *.rs
+alwaysApply: false
+---
+
+# 编码
+- 需要编写注释
