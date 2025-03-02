@@ -65,9 +65,8 @@ pub fn setup_background(mut commands: Commands,
     // 绘制横线
     // 上半部分横线（0-4）
     for i in 0..5 {
-        // 计算横线位置，考虑线宽
-        let y = BOARD_SIZE.y / 2.0 - i as f32 * (BOARD_SIZE.y / 9.0);
-        // 确保线条不会超出边界，线宽居中
+        // 计算横线位置
+        let y = BOARD_SIZE.y / 2.0 - i as f32 * GRID_SIZE;
         commands.spawn((
             ChessBoard,
             Mesh2d(meshes.add(Rectangle::new(BOARD_WIDTH, LINE_WIDTH))),
@@ -78,9 +77,8 @@ pub fn setup_background(mut commands: Commands,
     
     // 下半部分横线（5-9）
     for i in 5..10 {
-        // 计算横线位置，考虑线宽
-        let y = BOARD_SIZE.y / 2.0 - i as f32 * (BOARD_SIZE.y / 9.0);
-        // 确保线条不会超出边界，线宽居中
+        // 计算横线位置
+        let y = BOARD_SIZE.y / 2.0 - i as f32 * GRID_SIZE;
         commands.spawn((
             ChessBoard,
             Mesh2d(meshes.add(Rectangle::new(BOARD_WIDTH, LINE_WIDTH))),
@@ -91,14 +89,13 @@ pub fn setup_background(mut commands: Commands,
     
     // 绘制竖线
     for i in 0..9 {
-        let x = -BOARD_SIZE.x / 2.0 + i as f32 * (BOARD_SIZE.x / 8.0);
+        // 计算竖线位置 - 棋盘宽度为8格，需要9条竖线
+        let x = -BOARD_SIZE.x / 2.0 + i as f32 * GRID_SIZE;
         
-        // 计算上半部分竖线的长度和位置，考虑线宽
-        let upper_line_length = BOARD_HEIGHT / 2.0 - GRID_SIZE / 2.0;
-        // 位置需要考虑线宽，确保与楚河汉界区域精确对齐
+        // 上半部分竖线 - 从上边界到楚河汉界上边界（4个格子高度）
+        let upper_line_length = GRID_SIZE * 4.0; // 上半部分4个格子高度
         let upper_line_y_pos = GRID_SIZE / 2.0 + upper_line_length / 2.0;
         
-        // 上半部分竖线
         commands.spawn((
             ChessBoard,
             Mesh2d(meshes.add(Rectangle::new(LINE_WIDTH, upper_line_length))),
@@ -106,12 +103,10 @@ pub fn setup_background(mut commands: Commands,
             Transform::from_xyz(x, upper_line_y_pos, 1.0),
         ));
         
-        // 计算下半部分竖线的长度和位置，考虑线宽
-        let lower_line_length = BOARD_HEIGHT / 2.0 - GRID_SIZE / 2.0;
-        // 位置需要考虑线宽，确保与楚河汉界区域精确对齐
+        // 下半部分竖线 - 从楚河汉界下边界到下边界（4个格子高度）
+        let lower_line_length = GRID_SIZE * 4.0; // 下半部分4个格子高度
         let lower_line_y_pos = -GRID_SIZE / 2.0 - lower_line_length / 2.0;
         
-        // 下半部分竖线
         commands.spawn((
             ChessBoard,
             Mesh2d(meshes.add(Rectangle::new(LINE_WIDTH, lower_line_length))),
@@ -136,12 +131,12 @@ pub fn setup_background(mut commands: Commands,
         let (end_x, end_y) = positions[1];
         
         let start_pos = Vec2::new(
-            -BOARD_SIZE.x / 2.0 + start_x as f32 * (BOARD_SIZE.x / 8.0),
-            BOARD_SIZE.y / 2.0 - start_y as f32 * (BOARD_SIZE.y / 9.0),
+            -BOARD_SIZE.x / 2.0 + start_x as f32 * GRID_SIZE,
+            BOARD_SIZE.y / 2.0 - start_y as f32 * GRID_SIZE,
         );
         let end_pos = Vec2::new(
-            -BOARD_SIZE.x / 2.0 + end_x as f32 * (BOARD_SIZE.x / 8.0),
-            BOARD_SIZE.y / 2.0 - end_y as f32 * (BOARD_SIZE.y / 9.0),
+            -BOARD_SIZE.x / 2.0 + end_x as f32 * GRID_SIZE,
+            BOARD_SIZE.y / 2.0 - end_y as f32 * GRID_SIZE,
         );
         
         // 使用LineList绘制斜线
@@ -159,8 +154,8 @@ pub fn setup_background(mut commands: Commands,
 
     // 绘制棋子放置点（四个角落的直角线）
     for (x, y) in POINT_POSITIONS.iter() {
-        let pos_x = -BOARD_SIZE.x / 2.0 + *x as f32 * (BOARD_SIZE.x / 8.0);
-        let pos_y = BOARD_SIZE.y / 2.0 - *y as f32 * (BOARD_SIZE.y / 9.0);
+        let pos_x = -BOARD_SIZE.x / 2.0 + *x as f32 * GRID_SIZE;
+        let pos_y = BOARD_SIZE.y / 2.0 - *y as f32 * GRID_SIZE;
         
         // 在四个角落创建直角线
         let corner_offset = GRID_SIZE / 6.0; // 减小距离，使直角线更靠近中心点

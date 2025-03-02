@@ -1,8 +1,8 @@
 use bevy::prelude::*;
 
 // 棋盘常量
-pub const BOARD_WIDTH_COUNT: f32 = 9.0;
-pub const BOARD_HEIGHT_COUNT: f32 = 10.0;
+pub const BOARD_WIDTH_COUNT: f32 = 8.0;
+pub const BOARD_HEIGHT_COUNT: f32 = 9.0;
 pub const GRID_SIZE: f32 = 60.0; // 格子大小
 pub const BOARD_WIDTH: f32 = BOARD_WIDTH_COUNT * GRID_SIZE;
 pub const BOARD_HEIGHT: f32 = BOARD_HEIGHT_COUNT * GRID_SIZE;
