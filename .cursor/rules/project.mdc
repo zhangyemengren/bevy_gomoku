@@ -6,3 +6,6 @@ alwaysApply: false
 
 # 编码
 - 需要编写注释
+- 不要使用废弃语法 如 SpriteBundle
+
+

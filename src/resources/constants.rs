@@ -16,6 +16,13 @@ pub const POINT_SIZE: f32 = 10.0; // 棋子放置点大小
 pub const POINT_COLOR: Color = Color::BLACK; // 放置点颜色
 pub const TEXT_SIZE: f32 = 40.0;
 
+// 棋子常量
+pub const PIECE_SIZE: f32 = 40.0; // 棋子大小
+pub const PIECE_RED_COLOR: Color = Color::srgb(0.9, 0.2, 0.2); // 红方棋子颜色
+pub const PIECE_BLACK_COLOR: Color = Color::srgb(0.2, 0.2, 0.2); // 黑方棋子颜色
+pub const PIECE_TEXT_COLOR: Color = Color::WHITE; // 棋子文字颜色
+pub const PIECE_TEXT_SIZE: f32 = PIECE_SIZE * 0.6; // 棋子文字大小
+
 // 棋盘位置配置
 pub const PALACE_POSITIONS: [[(i32, i32); 2]; 4] = [
     // 上方九宫

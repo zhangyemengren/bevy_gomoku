@@ -5,7 +5,7 @@ mod entities;
 mod plugins;
 
 use bevy::prelude::*;
-use systems::{setup_background, setup_camera};
+use systems::{setup_background, setup_camera, setup_chess_pieces};
 use resources::load_fonts;
 
 fn main() {
@@ -15,6 +15,8 @@ fn main() {
         .add_systems(Startup, (load_fonts, setup_camera).chain())
         // 背景需在字体加载后绘制
         .add_systems(Startup, setup_background.after(load_fonts))
+        // 棋子需在背景绘制后生成
+        .add_systems(Startup, setup_chess_pieces.after(setup_background))
         .run();
 }
 
