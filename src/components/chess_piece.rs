@@ -29,7 +29,7 @@ pub enum ChessPieceColor {
     Black,
 }
 
-/// 棋子组件
+/// 棋子组件 - 包含棋子的基本信息
 #[derive(Component, Clone)]
 pub struct ChessPiece {
     /// 棋子类型
@@ -38,6 +38,22 @@ pub struct ChessPiece {
     pub color: ChessPieceColor,
     /// 棋子在棋盘上的位置（格子坐标）
     pub position: (i32, i32),
+}
+
+/// 棋子位置组件 - 用于表示棋子在棋盘上的位置
+#[derive(Component, Clone, Debug)]
+pub struct BoardPosition {
+    /// 棋子在棋盘上的位置（格子坐标）
+    pub position: (i32, i32),
+}
+
+/// 棋子外观组件 - 用于表示棋子的视觉外观
+#[derive(Component, Clone)]
+pub struct PieceAppearance {
+    /// 棋子的显示文本
+    pub text: String,
+    /// 棋子的颜色
+    pub color: Color,
 }
 
 impl ChessPiece {
