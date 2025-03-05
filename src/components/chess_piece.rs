@@ -1,43 +1,24 @@
 use bevy::prelude::*;
 
-/// 棋子类型
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+use crate::resources::constants::{PIECE_BLACK_COLOR, PIECE_RED_COLOR};
+
+/// 棋子类型 - 不再区分红黑方，只表示棋子种类
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Component)]
 pub enum ChessPieceType {
-    // 红方
-    Rook,    // 车
-    Horse,   // 马
-    Elephant, // 相
-    Advisor, // 士
-    General, // 帅
-    Cannon,  // 炮
-    Soldier, // 兵
-    
-    // 黑方
-    BRook,    // 车
-    BHorse,   // 马
-    BElephant, // 象
-    BAdvisor, // 士
-    BGeneral, // 将
-    BCannon,  // 炮
-    BPawn,    // 卒
+    Rook,     // 车
+    Horse,    // 马
+    Elephant, // 相/象
+    Advisor,  // 士/仕
+    General,  // 帅/将
+    Cannon,   // 炮
+    Soldier,  // 兵/卒
 }
 
-/// 棋子颜色
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ChessPieceColor {
-    Red,
-    Black,
-}
-
-/// 棋子组件 - 包含棋子的基本信息
-#[derive(Component, Clone)]
-pub struct ChessPiece {
-    /// 棋子类型
-    pub piece_type: ChessPieceType,
-    /// 棋子颜色
-    pub color: ChessPieceColor,
-    /// 棋子在棋盘上的位置（格子坐标）
-    pub position: (i32, i32),
+/// 棋子阵营 - 红方或黑方
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Component)]
+pub enum Side {
+    Red,   // 红方
+    Black, // 黑方
 }
 
 /// 棋子位置组件 - 用于表示棋子在棋盘上的位置
@@ -56,57 +37,37 @@ pub struct PieceAppearance {
     pub color: Color,
 }
 
-impl ChessPiece {
-    /// 创建新棋子
-    pub fn new(piece_type: ChessPieceType, position: (i32, i32)) -> Self {
-        // 根据棋子类型确定颜色
-        let color = match piece_type {
-            ChessPieceType::Rook | 
-            ChessPieceType::Horse | 
-            ChessPieceType::Elephant | 
-            ChessPieceType::Advisor | 
-            ChessPieceType::General | 
-            ChessPieceType::Cannon | 
-            ChessPieceType::Soldier => ChessPieceColor::Red,
-            
-            _ => ChessPieceColor::Black,
-        };
+/// 棋子标记组件 - 用于标识一个实体是棋子
+#[derive(Component)]
+pub struct ChessPiece;
+
+/// 获取棋子阵营对应的颜色值
+pub fn get_side_color_value(side: Side) -> Color {
+    match side {
+        Side::Red => PIECE_RED_COLOR,
+        Side::Black => PIECE_BLACK_COLOR,
+    }
+}
+
+/// 获取棋子类型和阵营对应的显示文本
+pub fn get_piece_text(piece_type: ChessPieceType, side: Side) -> &'static str {
+    match (piece_type, side) {
+        // 红方
+        (ChessPieceType::Rook, Side::Red) => "车",
+        (ChessPieceType::Horse, Side::Red) => "马",
+        (ChessPieceType::Elephant, Side::Red) => "相",
+        (ChessPieceType::Advisor, Side::Red) => "仕",
+        (ChessPieceType::General, Side::Red) => "帅",
+        (ChessPieceType::Cannon, Side::Red) => "炮",
+        (ChessPieceType::Soldier, Side::Red) => "兵",
         
-        Self {
-            piece_type,
-            color,
-            position,
-        }
-    }
-    
-    /// 获取棋子的显示文本
-    pub fn get_text(&self) -> &str {
-        match self.piece_type {
-            // 红方
-            ChessPieceType::Rook => "车",
-            ChessPieceType::Horse => "马",
-            ChessPieceType::Elephant => "相",
-            ChessPieceType::Advisor => "士",
-            ChessPieceType::General => "帅",
-            ChessPieceType::Cannon => "炮",
-            ChessPieceType::Soldier => "兵",
-            
-            // 黑方
-            ChessPieceType::BRook => "车",
-            ChessPieceType::BHorse => "马",
-            ChessPieceType::BElephant => "象",
-            ChessPieceType::BAdvisor => "士",
-            ChessPieceType::BGeneral => "将",
-            ChessPieceType::BCannon => "炮",
-            ChessPieceType::BPawn => "卒",
-        }
-    }
-    
-    /// 获取棋子的颜色
-    pub fn get_color(&self) -> Color {
-        match self.color {
-            ChessPieceColor::Red => Color::rgb(0.8, 0.0, 0.0),
-            ChessPieceColor::Black => Color::rgb(0.0, 0.0, 0.0),
-        }
+        // 黑方
+        (ChessPieceType::Rook, Side::Black) => "车",
+        (ChessPieceType::Horse, Side::Black) => "马",
+        (ChessPieceType::Elephant, Side::Black) => "象",
+        (ChessPieceType::Advisor, Side::Black) => "士",
+        (ChessPieceType::General, Side::Black) => "将",
+        (ChessPieceType::Cannon, Side::Black) => "炮",
+        (ChessPieceType::Soldier, Side::Black) => "卒",
     }
 } 
