@@ -41,6 +41,33 @@ pub struct PieceAppearance {
 #[derive(Component)]
 pub struct ChessPiece;
 
+/// 棋子背景组件标记 - 用于标识棋子的背景圆
+#[derive(Component)]
+pub struct PieceBackground;
+
+/// 棋子文本组件标记 - 用于标识棋子的文本
+#[derive(Component)]
+pub struct PieceText;
+
+/// 选中状态组件 - 用于标识棋子是否被选中
+#[derive(Component)]
+pub struct Selected {
+    /// 闪烁计时器
+    pub timer: Timer,
+    /// 是否在闪烁状态
+    pub is_highlighted: bool,
+}
+
+impl Default for Selected {
+    fn default() -> Self {
+        Self {
+            // 创建一个重复计时器，每0.3秒触发一次
+            timer: Timer::from_seconds(0.3, TimerMode::Repeating),
+            is_highlighted: false,
+        }
+    }
+}
+
 /// 获取棋子阵营对应的颜色值
 pub fn get_side_color_value(side: Side) -> Color {
     match side {

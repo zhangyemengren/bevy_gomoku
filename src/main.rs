@@ -8,7 +8,9 @@ use systems::{
     setup_background, 
     setup_camera, 
     setup_chess_pieces, 
-    update_piece_transforms
+    update_piece_transforms,
+    handle_chess_piece_click,
+    update_piece_selection
 };
 use resources::load_fonts;
 
@@ -23,6 +25,10 @@ fn main() {
         .add_systems(Startup, setup_chess_pieces.after(setup_background))
         // 更新棋子变换
         .add_systems(Update, update_piece_transforms)
+        // 处理棋子点击
+        .add_systems(Update, handle_chess_piece_click)
+        // 更新选中棋子闪烁效果
+        .add_systems(Update, update_piece_selection)
         .run();
 }
 
