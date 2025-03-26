@@ -61,8 +61,8 @@ pub struct Selected {
 impl Default for Selected {
     fn default() -> Self {
         Self {
-            // 创建一个重复计时器，每0.3秒触发一次
-            timer: Timer::from_seconds(0.3, TimerMode::Repeating),
+            // 创建一个重复计时器，每0.8秒触发一次，使闪烁更加缓慢
+            timer: Timer::from_seconds(0.8, TimerMode::Repeating),
             is_highlighted: false,
         }
     }

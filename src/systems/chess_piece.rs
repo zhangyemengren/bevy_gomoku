@@ -219,25 +219,45 @@ pub fn handle_chess_piece_click(
     }
 }
 
-/// 更新闪烁效果 - 仅使用缩放
+/// 更新选中棋子的闪烁效果
+/// 
+/// 这个系统实现了平滑的显示隐藏闪烁效果：
+/// 1. 棋子会以较慢的速度周期性地显示和隐藏
+/// 2. 使用正弦函数实现平滑过渡，比简单开关更自然
 pub fn update_piece_selection(
     time: Res<Time>,
-    mut selected_pieces: Query<(&mut Selected, &mut Transform)>,
+    mut selected_pieces: Query<(&mut Selected, &Children)>,
+    mut backgrounds: Query<&mut Visibility, With<PieceBackground>>,
+    mut texts: Query<&mut Visibility, (With<PieceText>, Without<PieceBackground>)>,
 ) {
-    for (mut selected, mut transform) in selected_pieces.iter_mut() {
+    for (mut selected, children) in selected_pieces.iter_mut() {
         // 更新闪烁计时器
         selected.timer.tick(time.delta());
         
-        // 检查是否需要切换闪烁状态
+        // 闪烁动画进度 (0.0 - 1.0)
+        let progress = selected.timer.elapsed_secs() / selected.timer.duration().as_secs_f32();
+        
+        // 使用正弦波函数计算可见性 - 调整为在中间部分闪烁，确保可见时间更长
+        // 当sin值小于-0.6时隐藏，其余时间显示（约25%时间隐藏，75%时间显示）
+        let visibility_value = (progress * std::f32::consts::PI * 2.0).sin();
+        let is_visible = visibility_value > -0.6;
+        
+        // 应用可见性更改到棋子组件
+        for &child in children.iter() {
+            // 处理背景圆形
+            if let Ok(mut bg_visibility) = backgrounds.get_mut(child) {
+                *bg_visibility = if is_visible { Visibility::Visible } else { Visibility::Hidden };
+            }
+            
+            // 处理文本
+            if let Ok(mut text_visibility) = texts.get_mut(child) {
+                *text_visibility = if is_visible { Visibility::Visible } else { Visibility::Hidden };
+            }
+        }
+        
+        // 检查是否需要切换闪烁状态（用于其他逻辑）
         if selected.timer.just_finished() {
             selected.is_highlighted = !selected.is_highlighted;
-            
-            // 在正常大小和放大状态之间切换
-            if selected.is_highlighted {
-                transform.scale = Vec3::splat(1.2); // 放大20%
-            } else {
-                transform.scale = Vec3::ONE; // 恢复正常大小
-            }
         }
     }
 } 
