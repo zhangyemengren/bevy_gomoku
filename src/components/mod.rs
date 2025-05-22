@@ -4,11 +4,11 @@ mod chess_piece;
 
 // 棋盘组件
 #[derive(Component)]
-pub struct ChessBoard;
+pub struct GoBoard;
 
-// 棋子放置点组件
+// 棋盘标记点组件
 #[derive(Component)]
-pub struct PlacementPoint; 
+pub struct StarPoint; 
 
 // 导出棋子组件
 pub use chess_piece::*; 

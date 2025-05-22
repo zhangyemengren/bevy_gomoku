@@ -1,217 +1,178 @@
 use bevy::prelude::*;
 use crate::components::{
-    ChessPiece, 
-    ChessPieceType, 
-    Side,
+    Stone, 
+    StoneColor,
     BoardPosition, 
-    PieceAppearance,
+    StoneBackground,
     Selected,
-    PieceBackground,
-    PieceText,
-    get_side_color_value,
-    get_piece_text
+    get_stone_color_value
 };
 use crate::resources::constants::*;
-use crate::resources::GameFonts;
+
+/// 游戏状态资源 - 用于跟踪当前玩家和游戏状态
+#[derive(Resource)]
+pub struct GameState {
+    /// 当前玩家
+    pub current_player: StoneColor,
+    /// 游戏是否结束
+    pub game_over: bool,
+    /// 获胜者
+    pub winner: Option<StoneColor>,
+    /// 棋盘状态 - 存储每个位置的棋子颜色，None表示空位
+    pub board: [[Option<StoneColor>; 15]; 15],
+}
+
+impl Default for GameState {
+    fn default() -> Self {
+        Self {
+            current_player: StoneColor::Black, // 黑棋先行
+            game_over: false,
+            winner: None,
+            board: [[None; 15]; 15],
+        }
+    }
+}
 
 /// 初始化棋子系统
 pub fn setup_chess_pieces(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    fonts: Res<GameFonts>,
 ) {
-    // 创建初始棋盘布局
-    create_initial_pieces(&mut commands, &mut meshes, &mut materials, &fonts);
+    // 初始化游戏状态
+    commands.insert_resource(GameState::default());
 }
 
 /// 创建棋子实体
-fn create_chess_piece(
+fn create_stone(
     commands: &mut Commands,
-    piece_type: ChessPieceType,
-    side: Side,
+    stone_color: StoneColor,
     position: (i32, i32),
     meshes: &mut ResMut<Assets<Mesh>>,
     materials: &mut ResMut<Assets<ColorMaterial>>,
-    fonts: &Res<GameFonts>,
 ) -> Entity {
     // 计算初始位置
     let x = -BOARD_SIZE.x / 2.0 + position.0 as f32 * GRID_SIZE;
     let y = BOARD_SIZE.y / 2.0 - position.1 as f32 * GRID_SIZE;
-    
-    // 获取棋子文本和颜色
-    let text = get_piece_text(piece_type, side).to_string();
-    let display_color = get_side_color_value(side);
-    let piece_appearance = PieceAppearance {
-        text: text.clone(),
-        color: display_color,
-    };
-    
+
+    // 获取棋子颜色
+    let display_color = get_stone_color_value(stone_color);
+
     // 创建棋子实体
     let entity = commands.spawn((
-        ChessPiece,
-        piece_type,
-        side,
+        Stone,
+        stone_color,
         BoardPosition { position },
-        piece_appearance,
         Transform::from_xyz(x, y, 2.0), // 初始变换
-        Visibility::default(),
+        Visibility::Visible,
     )).id();
-    
+
     // 直接添加视觉表现
     commands.entity(entity).with_children(|parent| {
-        // 棋子背景圆形
+        // 棋子圆形
         parent.spawn((
-            PieceBackground,
+            StoneBackground,
             Mesh2d(meshes.add(Circle::new(PIECE_SIZE / 2.0))),
             MeshMaterial2d(materials.add(display_color)),
             Transform::from_xyz(0.0, 0.0, 2.0),
             Visibility::Visible,
         ));
-        
-        // 棋子文字
-        parent.spawn((
-            PieceText,
-            Text2d::new(text),
-            TextFont {
-                font: fonts.noto_sans_sc.clone(),
-                font_size: PIECE_TEXT_SIZE,
-                ..default()
-            },
-            TextColor(PIECE_TEXT_COLOR),
-            TextLayout::new_with_justify(JustifyText::Center),
-            Transform::from_xyz(0.0, 0.0, 3.0),
-            Visibility::Visible,
-        ));
     });
-    
-    entity
-}
 
-/// 创建初始棋盘布局
-fn create_initial_pieces(
-    commands: &mut Commands,
-    meshes: &mut ResMut<Assets<Mesh>>,
-    materials: &mut ResMut<Assets<ColorMaterial>>,
-    fonts: &Res<GameFonts>,
-) {
-    // 红方棋子初始位置
-    let red_pieces = [
-        // 底线棋子
-        (ChessPieceType::Rook, (0, 9)),     // 左车
-        (ChessPieceType::Horse, (1, 9)),    // 左马
-        (ChessPieceType::Elephant, (2, 9)), // 左相
-        (ChessPieceType::Advisor, (3, 9)),  // 左士
-        (ChessPieceType::General, (4, 9)),  // 帅
-        (ChessPieceType::Advisor, (5, 9)),  // 右士
-        (ChessPieceType::Elephant, (6, 9)), // 右相
-        (ChessPieceType::Horse, (7, 9)),    // 右马
-        (ChessPieceType::Rook, (8, 9)),     // 右车
-        
-        // 炮
-        (ChessPieceType::Cannon, (1, 7)),   // 左炮
-        (ChessPieceType::Cannon, (7, 7)),   // 右炮
-        
-        // 兵
-        (ChessPieceType::Soldier, (0, 6)),  // 兵1
-        (ChessPieceType::Soldier, (2, 6)),  // 兵2
-        (ChessPieceType::Soldier, (4, 6)),  // 兵3
-        (ChessPieceType::Soldier, (6, 6)),  // 兵4
-        (ChessPieceType::Soldier, (8, 6)),  // 兵5
-    ];
-    
-    // 黑方棋子初始位置
-    let black_pieces = [
-        // 底线棋子
-        (ChessPieceType::Rook, (0, 0)),     // 左车
-        (ChessPieceType::Horse, (1, 0)),    // 左马
-        (ChessPieceType::Elephant, (2, 0)), // 左象
-        (ChessPieceType::Advisor, (3, 0)),  // 左士
-        (ChessPieceType::General, (4, 0)),  // 将
-        (ChessPieceType::Advisor, (5, 0)),  // 右士
-        (ChessPieceType::Elephant, (6, 0)), // 右象
-        (ChessPieceType::Horse, (7, 0)),    // 右马
-        (ChessPieceType::Rook, (8, 0)),     // 右车
-        
-        // 炮
-        (ChessPieceType::Cannon, (1, 2)),   // 左炮
-        (ChessPieceType::Cannon, (7, 2)),   // 右炮
-        
-        // 卒
-        (ChessPieceType::Soldier, (0, 3)),  // 卒1
-        (ChessPieceType::Soldier, (2, 3)),  // 卒2
-        (ChessPieceType::Soldier, (4, 3)),  // 卒3
-        (ChessPieceType::Soldier, (6, 3)),  // 卒4
-        (ChessPieceType::Soldier, (8, 3)),  // 卒5
-    ];
-    
-    // 生成红方棋子
-    for (piece_type, position) in red_pieces.iter() {
-        create_chess_piece(commands, *piece_type, Side::Red, *position, meshes, materials, fonts);
-    }
-    
-    // 生成黑方棋子
-    for (piece_type, position) in black_pieces.iter() {
-        create_chess_piece(commands, *piece_type, Side::Black, *position, meshes, materials, fonts);
-    }
+    entity
 }
 
 /// 根据棋子位置更新变换组件
 pub fn update_piece_transforms(
-    mut query: Query<(&BoardPosition, &mut Transform), With<ChessPiece>>,
+    mut query: Query<(&BoardPosition, &mut Transform), With<Stone>>,
 ) {
     for (board_pos, mut transform) in query.iter_mut() {
         // 计算棋子在屏幕上的位置
         // 从棋盘左上角(0,0)开始，向右向下增加
         let x = -BOARD_SIZE.x / 2.0 + board_pos.position.0 as f32 * GRID_SIZE;
         let y = BOARD_SIZE.y / 2.0 - board_pos.position.1 as f32 * GRID_SIZE;
-        
+
         // 更新变换
         transform.translation = Vec3::new(x, y, 2.0);
     }
 }
 
-/// 处理棋子点击事件
+/// 处理棋盘点击事件 - 放置棋子
 pub fn handle_chess_piece_click(
     mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut game_state: ResMut<GameState>,
     mouse_button_input: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
     cameras: Query<(&Camera, &GlobalTransform)>,
-    pieces: Query<(Entity, &Transform, &BoardPosition), With<ChessPiece>>,
-    selected: Query<Entity, With<Selected>>,
+    stones: Query<&BoardPosition, With<Stone>>,
 ) {
+    // 如果游戏已结束，不处理点击
+    if game_state.game_over {
+        return;
+    }
+
     // 当鼠标左键被点击时
     if mouse_button_input.just_pressed(MouseButton::Left) {
         // 获取主窗口和鼠标位置
-        let window = windows.single();
-        
-        if let Some(cursor_position) = window.cursor_position() {
-            // 获取相机
-            let (camera, camera_transform) = cameras.single();
-            
-            // 清除之前选中的棋子
-            for entity in selected.iter() {
-                commands.entity(entity).remove::<Selected>();
-            }
-            
-            // 检查是否点击了棋子
-            for (entity, transform, _) in pieces.iter() {
-                // 将棋子位置转换为屏幕坐标
-                if let Some(ndc) = camera.world_to_ndc(camera_transform, transform.translation) {
-                    // 从NDC坐标转换为窗口坐标
-                    let screen_x = (ndc.x + 1.0) * 0.5 * window.width();
-                    let screen_y = (1.0 - ndc.y) * 0.5 * window.height();
-                    let piece_screen_pos = Vec2::new(screen_x, screen_y);
-                    
-                    // 计算鼠标到棋子的距离
-                    let distance = cursor_position.distance(piece_screen_pos);
-                    
-                    // 如果鼠标点击在棋子范围内
-                    if distance < PIECE_SIZE {
-                        info!("选中棋子: {:?}", entity);
-                        // 添加选中组件
-                        commands.entity(entity).insert(Selected::default());
-                        break; // 只选中一个棋子
+        if let Ok(window) = windows.get_single() {
+            if let Some(cursor_position) = window.cursor_position() {
+                // 获取相机
+                if let Ok((camera, camera_transform)) = cameras.get_single() {
+                    // 将鼠标位置转换为世界坐标
+                    if let Ok(ray) = camera.viewport_to_world(camera_transform, cursor_position) {
+                        // 计算与棋盘平面的交点 - 使用自定义计算
+                        let plane_normal = Vec3::Z;   // 棋盘朝上的法线
+                        let plane_point = Vec3::ZERO; // 棋盘中心点
+
+                        // 手动计算射线与平面的交点
+                        let denominator = ray.direction.dot(plane_normal);
+
+                        // 确保射线不与平面平行
+                        if denominator.abs() > 0.0001 {
+                            let t = (plane_point - ray.origin).dot(plane_normal) / denominator;
+
+                            // 确保交点在射线前方
+                            if t >= 0.0 {
+                                let world_position = ray.origin + ray.direction * t;
+
+                                // 将世界坐标转换为棋盘格子坐标
+                                let grid_x = ((world_position.x + BOARD_SIZE.x / 2.0) / GRID_SIZE).round() as i32;
+                                let grid_y = ((BOARD_SIZE.y / 2.0 - world_position.y) / GRID_SIZE).round() as i32;
+
+                                // 检查是否在棋盘范围内
+                                if grid_x >= 0 && grid_x < 15 && grid_y >= 0 && grid_y < 15 {
+                                    // 检查该位置是否已有棋子
+                                    let position_occupied = stones.iter().any(|pos| pos.position == (grid_x, grid_y));
+
+                                    if !position_occupied {
+                                        // 在棋盘状态中记录这个位置
+                                        game_state.board[grid_y as usize][grid_x as usize] = Some(game_state.current_player);
+
+                                        // 创建新棋子
+                                        create_stone(
+                                            &mut commands,
+                                            game_state.current_player,
+                                            (grid_x, grid_y),
+                                            &mut meshes,
+                                            &mut materials,
+                                        );
+
+                                        // 检查是否获胜
+                                        if check_win(&game_state.board, grid_x, grid_y, game_state.current_player) {
+                                            info!("玩家 {:?} 获胜!", game_state.current_player);
+                                            game_state.game_over = true;
+                                            game_state.winner = Some(game_state.current_player);
+                                        } else {
+                                            // 切换玩家
+                                            game_state.current_player = match game_state.current_player {
+                                                StoneColor::Black => StoneColor::White,
+                                                StoneColor::White => StoneColor::Black,
+                                            };
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -219,45 +180,82 @@ pub fn handle_chess_piece_click(
     }
 }
 
+/// 检查是否获胜 - 五子连珠
+fn check_win(board: &[[Option<StoneColor>; 15]; 15], x: i32, y: i32, color: StoneColor) -> bool {
+    let directions = [
+        (1, 0),   // 水平
+        (0, 1),   // 垂直
+        (1, 1),   // 对角线
+        (1, -1),  // 反对角线
+    ];
+
+    for (dx, dy) in directions.iter() {
+        let mut count = 1; // 当前位置已经有一个棋子
+
+        // 正向检查
+        let mut nx = x + dx;
+        let mut ny = y + dy;
+        while nx >= 0 && nx < 15 && ny >= 0 && ny < 15 {
+            if board[ny as usize][nx as usize] == Some(color) {
+                count += 1;
+                nx += dx;
+                ny += dy;
+            } else {
+                break;
+            }
+        }
+
+        // 反向检查
+        nx = x - dx;
+        ny = y - dy;
+        while nx >= 0 && nx < 15 && ny >= 0 && ny < 15 {
+            if board[ny as usize][nx as usize] == Some(color) {
+                count += 1;
+                nx -= dx;
+                ny -= dy;
+            } else {
+                break;
+            }
+        }
+
+        // 如果有5个或更多连续棋子，则获胜
+        if count >= 5 {
+            return true;
+        }
+    }
+
+    false
+}
+
 /// 更新选中棋子的闪烁效果
-/// 
-/// 这个系统实现了平滑的显示隐藏闪烁效果：
-/// 1. 棋子会以较慢的速度周期性地显示和隐藏
-/// 2. 使用正弦函数实现平滑过渡，比简单开关更自然
 pub fn update_piece_selection(
     time: Res<Time>,
     mut selected_pieces: Query<(&mut Selected, &Children)>,
-    mut backgrounds: Query<&mut Visibility, With<PieceBackground>>,
-    mut texts: Query<&mut Visibility, (With<PieceText>, Without<PieceBackground>)>,
+    mut backgrounds: Query<&mut Visibility, With<StoneBackground>>,
 ) {
     for (mut selected, children) in selected_pieces.iter_mut() {
         // 更新闪烁计时器
         selected.timer.tick(time.delta());
-        
+
         // 闪烁动画进度 (0.0 - 1.0)
         let progress = selected.timer.elapsed_secs() / selected.timer.duration().as_secs_f32();
-        
+
         // 使用正弦波函数计算可见性 - 调整为在中间部分闪烁，确保可见时间更长
         // 当sin值小于-0.6时隐藏，其余时间显示（约25%时间隐藏，75%时间显示）
         let visibility_value = (progress * std::f32::consts::PI * 2.0).sin();
         let is_visible = visibility_value > -0.6;
-        
+
         // 应用可见性更改到棋子组件
-        for &child in children.iter() {
+        for child in children.iter() {
             // 处理背景圆形
             if let Ok(mut bg_visibility) = backgrounds.get_mut(child) {
                 *bg_visibility = if is_visible { Visibility::Visible } else { Visibility::Hidden };
             }
-            
-            // 处理文本
-            if let Ok(mut text_visibility) = texts.get_mut(child) {
-                *text_visibility = if is_visible { Visibility::Visible } else { Visibility::Hidden };
-            }
         }
-        
+
         // 检查是否需要切换闪烁状态（用于其他逻辑）
         if selected.timer.just_finished() {
             selected.is_highlighted = !selected.is_highlighted;
         }
     }
-} 
+}
